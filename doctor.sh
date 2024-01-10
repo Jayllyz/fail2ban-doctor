@@ -149,7 +149,7 @@ function top_login_attempts() {
 }
 
 function top_countries_from_ips_ban() {
-    echo -e "${INFO}Checking the top $1 countries based banned IPs...${RESET}"
+    echo -e "${INFO}Checking the top $1 countries based on banned IPs...${RESET}"
     echo -e "${WARNING}Working... This may take a while, please be patient.${RESET}"
 
     ips=$(grep -Eo "Ban .*" "${FAil2BAN_LOGFILE}" | awk '{print $2}' | sort | uniq || true)
