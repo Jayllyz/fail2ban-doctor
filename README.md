@@ -12,7 +12,7 @@ This script is designed to manage fail2ban for SSH security and analyze authenti
 - **Failed Attempts by IP**: Check failed login attempts by IP address.
 - **View fail2ban Status**: Check the status of fail2ban for SSH.
 - **Disable SSH Root Login**: Disable root login via SSH for enhanced security.
-- **Top Countries from IP Addresses**: Determine top countries based on IP addresses in the logs. (geoiplookup required)
+- **Top Countries**: Determine top countries based on banned IP addresses. (GeoIP Lookup)
 
 > I have a lot of ideas for this script, expect more features soon.
 
@@ -30,4 +30,4 @@ curl -s https://raw.githubusercontent.com/jayllyz/fail2ban-doctor/main/doctor.sh
 
 ## Screenshots
 
-![countries](assets/countries.png?raw=true "Countries")
+<img src="https://raw.githubusercontent.com/jayllyz/fail2ban-doctor/main/assets/countries.png" alt="countries" height="500" width="400" />
