@@ -118,6 +118,7 @@ function check_attemps() {
 
 function check_attemps_by_user() {
     echo -e "${INFO}Checking the number of failed login attempts by user...${RESET}"
+    user_attempts=$(grep 'Failed password for invalid user' "${LOGFILE}" | awk '{print $(NF-5)}' | sort | uniq -c || true)
 
     echo "---------------------------------------------"
     echo "| Login                      | Occurrences  |"
