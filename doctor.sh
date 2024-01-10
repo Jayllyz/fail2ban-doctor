@@ -7,6 +7,7 @@ INFO='\033[0;36m'
 ERROR='\033[0;31m'
 SUCCESS='\033[0;32m'
 LOGFILE="/var/log/auth.log"
+FAil2BAN_LOGFILE="/var/log/fail2ban.log"
 
 function print_ascii() {
     echo -e "${INFO}  _____     _ _ ____  ____                    ____             _             "
@@ -97,7 +98,7 @@ function menu() {
         if [[ ! "${top}" =~ ^[0-9]+$ ]]; then
             top=10
         fi
-        top_countries_from_ips "${top}"
+        top_countries_from_ips_ban "${top}"
         ;;
     8)
         exit
@@ -117,7 +118,6 @@ function check_attemps() {
 
 function check_attemps_by_user() {
     echo -e "${INFO}Checking the number of failed login attempts by user...${RESET}"
-    user_attempts=$(grep 'Failed password for invalid user' "${LOGFILE}" | awk '{print $(NF-5)}' | sort | uniq -c || true)
 
     echo "---------------------------------------------"
     echo "| Login                      | Occurrences  |"
@@ -147,18 +147,21 @@ function top_login_attempts() {
     press_enter
 }
 
-function top_countries_from_ips() {
-    echo -e "${INFO}Checking the top $1 countries based on IP addresses...${RESET}"
+function top_countries_from_ips_ban() {
+    echo -e "${INFO}Checking the top $1 countries based banned IPs...${RESET}"
+    echo -e "${WARNING}Working... This may take a while, please be patient.${RESET}"
 
-    ips=$(grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" "${LOGFILE}" | sort | uniq -c | sort -nr || true)
+    ips=$(grep -Eo "Ban .*" "${FAil2BAN_LOGFILE}" | awk '{print $2}' | sort | uniq || true)
 
     declare -A countries_occurrences
     countries_occurrences=()
 
     while read -r line; do
 
-        ip=$(echo "${line}" | awk '{$1=""; print $0}' | xargs -0 || true)
-        ip=$(echo "${ip}" | tr -d '[:space:]')
+        ip=$(echo "${line}" | tr -d '[:space:]')
+        if [[ "${ip}" =~ ":" ]]; then
+            continue
+        fi
 
         country=$(geoiplookup "${ip}" | cut -d ',' -f2 || true)
 

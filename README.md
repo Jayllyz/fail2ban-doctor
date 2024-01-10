@@ -1,6 +1,6 @@
 # Fail2ban Doctor
 
-[![Super-Linter](https://github.com/jayllyz/fail2ban-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/marketplace/actions/super-linter)
+[![Super-Linter](https://github.com/Jayllyz/fail2ban-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/marketplace/actions/super-linter)
 
 This script is designed to manage fail2ban for SSH security and analyze authentication logs on a Linux system to provide insights into failed login attempts, IP addresses, and more.
 
@@ -27,3 +27,7 @@ The script has been tested on Ubuntu 23.10 x86_64 only for now.
 ```bash
 curl -s https://raw.githubusercontent.com/jayllyz/fail2ban-doctor/main/doctor.sh | sudo bash
 ```
+
+## Screenshots
+
+![countries](assets/countries.png?raw=true "Countries")
