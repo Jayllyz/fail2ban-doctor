@@ -27,3 +27,7 @@ The script has been tested on Ubuntu 23.10 x86_64 only for now.
 ```bash
 curl -s https://raw.githubusercontent.com/jayllyz/fail2ban-doctor/main/doctor.sh | sudo bash
 ```
+
+## Screenshots
+
+![countries](assets/countries.png?raw=true "Countries")
