@@ -54,7 +54,8 @@ function install_fail2ban() {
 function merge_logs() {
     mkdir -p /tmp/tempDoctor
     cp /var/log/auth.log* /tmp/tempDoctor
-    cat /tmp/tempDoctor/auth.log* >"${LOGFILE}"
+    rm -rf /tmp/tempDoctor/*.gz
+    cat /tmp/tempDoctor/auth.log* >>"${LOGFILE}"
 }
 
 function remove_logs() {
