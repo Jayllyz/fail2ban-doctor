@@ -6,8 +6,8 @@ WARNING='\033[0;33m'
 INFO='\033[0;36m'
 ERROR='\033[0;31m'
 SUCCESS='\033[0;32m'
-LOGFILE="/var/log/auth.log"
-FAil2BAN_LOGFILE="/var/log/fail2ban.log"
+LOGFILE='/tmp/tempDoctor/auth.log'
+FAil2BAN_LOGFILE='/var/log/fail2ban.log'
 
 function print_ascii() {
     echo -e "${INFO}  _____     _ _ ____  ____                    ____             _             "
@@ -51,6 +51,16 @@ function install_fail2ban() {
     systemctl start fail2ban
 }
 
+function merge_logs() {
+    mkdir -p /tmp/tempDoctor
+    cp /var/log/auth.log* /tmp/tempDoctor
+    cat /tmp/tempDoctor/auth.log* >"${LOGFILE}"
+}
+
+function remove_logs() {
+    rm -rf /tmp/tempDoctor
+}
+
 function press_enter() {
     echo ""
     echo -n "Press Enter to continue"
@@ -62,45 +72,42 @@ function menu() {
     clear
     echo -e "${INFO}Select an option:${RESET}"
     echo -e "${INFO}1) Check the number of failed login attempts${RESET}"
-    echo -e "${INFO}2) Check the number of failed login attempts by user${RESET}"
-    echo -e "${INFO}3) Check the top login attempts${RESET}"
-    echo -e "${INFO}4) Check the number of failed login attempts by IP${RESET}"
-    echo -e "${INFO}5) View fail2ban sshd status${RESET}"
-    echo -e "${INFO}6) Disable ssh root login${RESET}"
-    echo -e "${INFO}7) Top countries from IP addresses${RESET}"
-    echo -e "${INFO}8) Exit${RESET}"
+    echo -e "${INFO}2) Check the top user login attempts${RESET}"
+    echo -e "${INFO}3) Check the number of failed login attempts by IP${RESET}"
+    echo -e "${INFO}4) View fail2ban sshd status${RESET}"
+    echo -e "${INFO}5) Disable ssh root login${RESET}"
+    echo -e "${INFO}6) Top countries from IP addresses${RESET}"
+    echo -e "${INFO}7) Exit${RESET}"
     read -r option
     case ${option} in
     1)
         check_attemps
         ;;
     2)
-        check_attemps_by_user
-        ;;
-    3)
         read -r -p "How many? " top
         if [[ ! "${top}" =~ ^[0-9]+$ ]]; then
             top=10
         fi
         top_login_attempts "${top}"
         ;;
-    4)
+    3)
         check_attemps_by_ip
         ;;
-    5)
+    4)
         check_fail2ban_status
         ;;
-    6)
+    5)
         disable_ssh_root_login
         ;;
-    7)
+    6)
         read -r -p "How many? " top
         if [[ ! "${top}" =~ ^[0-9]+$ ]]; then
             top=10
         fi
         top_countries_from_ips_ban "${top}"
         ;;
-    8)
+    7)
+        remove_logs
         exit
         ;;
 
@@ -113,22 +120,6 @@ function menu() {
 function check_attemps() {
     failed_login_attempts=$(grep -c 'Failed password for' "${LOGFILE}" || true)
     echo -e "${INFO}The number of failed login attempts is ${SUCCESS}${failed_login_attempts}${RESET}"
-    press_enter
-}
-
-function check_attemps_by_user() {
-    echo -e "${INFO}Checking the number of failed login attempts by user...${RESET}"
-    user_attempts=$(grep 'Failed password for invalid user' "${LOGFILE}" | awk '{print $(NF-5)}' | sort | uniq -c || true)
-
-    echo "---------------------------------------------"
-    echo "| Login                      | Occurrences  |"
-    echo "---------------------------------------------"
-    while read -r line; do
-        occ=$(echo "${line}" | awk '{print $1}')
-        username=$(echo "${line}" | awk '{$1=""; print $0}' | xargs -0 || true)
-        printf "| %-25s | %-12s |\n" "${username}" "${occ}"
-    done <<<"${user_attempts}"
-    echo "---------------------------------------------"
     press_enter
 }
 
@@ -226,6 +217,7 @@ function disable_ssh_root_login() {
 function main() {
     check_root
     requierements
+    merge_logs
     print_ascii
     press_enter
     while true; do

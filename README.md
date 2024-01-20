@@ -7,8 +7,7 @@ This script is designed to manage fail2ban for SSH security and analyze authenti
 ## Features
 
 - **Check Failed Login Attempts**: View the number of failed login attempts.
-- **Failed Attempts by User**: Analyze failed login attempts by user and their occurrences.
-- **Top Login Attempts**: Display top failed login attempts.
+- **Top Login Attempts**: Display top usernames of failed login attempts.
 - **Failed Attempts by IP**: Check failed login attempts by IP address.
 - **View fail2ban Status**: Check the status of fail2ban for SSH.
 - **Disable SSH Root Login**: Disable root login via SSH for enhanced security.
