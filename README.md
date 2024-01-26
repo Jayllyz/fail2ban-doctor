@@ -12,6 +12,8 @@ This script is designed to manage fail2ban for SSH security and analyze authenti
 - **View fail2ban Status**: Check the status of fail2ban for SSH.
 - **Disable SSH Root Login**: Disable root login via SSH for enhanced security.
 - **Top Countries**: Determine top countries based on banned IP addresses. (GeoIP Lookup)
+- **Blackhole blacklist**: Use [blackhole](https://ip.blackhole.monster/blackhole-30days) to create a huge list of bad IP addresses to ban.
+- **Update blackhole blacklist**: Update the blackhole blacklist every 30 days using cron.
 
 > I have a lot of ideas for this script, expect more features soon.
 
