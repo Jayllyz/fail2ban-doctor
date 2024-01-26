@@ -7,7 +7,7 @@ INFO='\033[0;36m'
 ERROR='\033[0;31m'
 SUCCESS='\033[0;32m'
 LOGFILE='/tmp/tempDoctor/auth.log'
-FAil2BAN_LOGFILE='/var/log/fail2ban.log'
+FAIL2BAN_LOGFILE='/var/log/fail2ban.log'
 
 function print_ascii() {
     echo -e "${INFO}  _____     _ _ ____  ____                    ____             _             "
@@ -19,7 +19,6 @@ function print_ascii() {
     echo -e "${INFO}Version: ${VERSION}${RESET}"
 }
 
-# check if the user is root
 function check_root() {
     if [[ "${EUID}" -ne 0 ]]; then
         echo "Please run as root"
@@ -78,7 +77,8 @@ function menu() {
     echo -e "${INFO}4) View fail2ban sshd status${RESET}"
     echo -e "${INFO}5) Disable ssh root login${RESET}"
     echo -e "${INFO}6) Top countries from IP addresses${RESET}"
-    echo -e "${INFO}7) Exit${RESET}"
+    echo -e "${INFO}7) Blackhole filter setup${RESET}"
+    echo -e "${INFO}8) Exit${RESET}"
     read -r option
     case ${option} in
     1)
@@ -95,7 +95,7 @@ function menu() {
         check_attemps_by_ip
         ;;
     4)
-        check_fail2ban_status
+        check_sshd_status
         ;;
     5)
         disable_ssh_root_login
@@ -108,6 +108,13 @@ function menu() {
         top_countries_from_ips_ban "${top}"
         ;;
     7)
+        echo -e "${INFO}This will update the blackhole banlist, create a blackhole filter, add a blackhole jail and create a cron to update the banlist every month${RESET}"
+        update_blackhole
+        create_blackhole_filter
+        add_blackhole_jail
+        cron_blackhole
+        ;;
+    8)
         remove_logs
         exit
         ;;
@@ -142,9 +149,11 @@ function top_login_attempts() {
 
 function top_countries_from_ips_ban() {
     echo -e "${INFO}Checking the top $1 countries based on banned IPs...${RESET}"
-    echo -e "${WARNING}Working... This may take a while, please be patient.${RESET}"
+    echo -e "${WARNING}Working... This may take a while, please be patient. (checking sshd jail only)${RESET}"
 
-    ips=$(grep -Eo "Ban .*" "${FAil2BAN_LOGFILE}" | awk '{print $2}' | sort | uniq || true)
+    # Take only lines from sshd jail
+    sshd_log=$(grep "sshd" "${FAIL2BAN_LOGFILE}")
+    ips=$(echo "${sshd_log}" | grep -E "Ban .*" | awk '{print $NF}' | sort | uniq || true)
 
     declare -A countries_occurrences
     countries_occurrences=()
@@ -197,7 +206,7 @@ function check_attemps_by_ip() {
     press_enter
 }
 
-function check_fail2ban_status() {
+function check_sshd_status() {
     fail2ban-client status sshd
     press_enter
 }
@@ -212,6 +221,71 @@ function disable_ssh_root_login() {
     sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
     systemctl restart sshd
     echo -e "${INFO}Root login disabled${RESET}"
+    press_enter
+}
+
+function update_blackhole() {
+    curl --compressed https://ip.blackhole.monster/blackhole-30days >/etc/fail2ban/blackhole.txt
+    echo -e "${INFO}Blackhole banlist updated in /etc/fail2ban/blackhole.txt${RESET}"
+}
+
+function create_blackhole_filter() {
+    if [[ -f /etc/fail2ban/filter.d/blackhole.conf ]]; then
+        echo -e "${WARNING}Blackhole filter already exists${RESET}"
+        read -r -p "Do you want to overwrite it? [y/N] " response
+        if [[ ! "${response}" =~ ^([yY])+$ ]]; then
+            return
+        fi
+    fi
+
+    cat <<EOF >/etc/fail2ban/filter.d/blackhole.conf
+    [Definition]
+    failregex = ^<HOST>$
+    ignoreregex =
+    port = all
+
+EOF
+    echo -e "${INFO}Blackhole filter created in /etc/fail2ban/filter.d/blackhole.conf${RESET}"
+}
+
+function add_blackhole_jail() {
+    if [[ -f /etc/fail2ban/jail.local ]]; then
+        if grep -q "\[blackhole\]" /etc/fail2ban/jail.local; then
+            return
+        fi
+    fi
+
+    cat <<EOF >>/etc/fail2ban/jail.local
+              
+    [blackhole]
+    enabled = true
+    filter = blackhole
+    logpath = /etc/fail2ban/blackhole.txt
+    maxretry = 1
+    banaction = iptables-allports
+    bantime = 30d
+
+EOF
+    echo -e "${INFO}Blackhole jail added${RESET}"
+    systemctl reload fail2ban
+}
+
+function cron_blackhole() {
+    if [[ -f /etc/cron.weekly/blackhole ]]; then
+        echo -e "${WARNING}Blackhole cron already exists${RESET}"
+        read -r -p "Do you want to overwrite it? [y/N] " response
+        if [[ ! "${response}" =~ ^([yY])+$ ]]; then
+            return
+        fi
+    fi
+    cat >/etc/fail2ban/blackhole.txt
+    cat <<EOF >/etc/cron.monthly/blackhole
+    #!/bin/bash
+    curl --compressed https://ip.blackhole.monster/blackhole-30days >/etc/fail2ban/blackhole.txt
+    systemctl reload fail2ban
+
+EOF
+    echo -e "${INFO}Blackhole cron created in /etc/cron.monthly/blackhole${RESET}"
     press_enter
 }
 
