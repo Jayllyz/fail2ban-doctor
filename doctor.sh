@@ -225,7 +225,7 @@ function disable_ssh_root_login() {
 }
 
 function update_blackhole() {
-    curl --compressed https://ip.blackhole.monster/blackhole-30days >/etc/fail2ban/blackhole.txt
+    curl --compressed https://ip.blackhole.monster/blackhole-30days >/etc/fail2ban/blackhole.txt 2>/dev/null
     echo -e "${INFO}Blackhole banlist updated in /etc/fail2ban/blackhole.txt${RESET}"
 }
 
@@ -271,7 +271,7 @@ EOF
 }
 
 function cron_blackhole() {
-    if [[ -f /etc/cron.weekly/blackhole ]]; then
+    if [[ -f /etc/cron.monthly/blackhole ]]; then
         echo -e "${WARNING}Blackhole cron already exists${RESET}"
         read -r -p "Do you want to overwrite it? [y/N] " response
         if [[ ! "${response}" =~ ^([yY])+$ ]]; then
@@ -281,7 +281,7 @@ function cron_blackhole() {
 
     cat <<EOF >/etc/cron.monthly/blackhole
     #!/bin/bash
-    curl --compressed https://ip.blackhole.monster/blackhole-30days >/etc/fail2ban/blackhole.txt
+    curl --compressed https://ip.blackhole.monster/blackhole-30days >/etc/fail2ban/blackhole.txt 2>/dev/null
     systemctl reload fail2ban
 
 EOF
