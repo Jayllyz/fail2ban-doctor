@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="1.0.0"
+VERSION="0.1.0"
 RESET='\033[0m'
 WARNING='\033[0;33m'
 INFO='\033[0;36m'
