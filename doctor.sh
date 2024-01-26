@@ -278,7 +278,7 @@ function cron_blackhole() {
             return
         fi
     fi
-    cat >/etc/fail2ban/blackhole.txt
+
     cat <<EOF >/etc/cron.monthly/blackhole
     #!/bin/bash
     curl --compressed https://ip.blackhole.monster/blackhole-30days >/etc/fail2ban/blackhole.txt
